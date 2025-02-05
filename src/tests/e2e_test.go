@@ -25,6 +25,8 @@ const ServerEndpoint = "http://localhost:3000"
 // Will hold ID of processed receipts
 var Receipt1ID string
 var Receipt2ID string
+var Receipt3ID string
+var Receipt4ID string
 
 func TestProcessReceiptWithoutItems(t *testing.T) {
 
@@ -257,10 +259,11 @@ func TestProcessReceiptWithInvalidTime(t *testing.T) {
 func TestProcessValidReceipt1(t *testing.T) {
 
 	payload := &models.Receipt{
+		UserID:       "TestUser1",
 		Retailer:     "Target",
 		Total:        "35.35",
 		PurchaseDate: "2022-01-01",
-		PurchaseTime: "13:01",
+		PurchaseTime: "16:59",
 		Items: []models.Item{
 			{
 				ShortDescription: "Mountain Dew 12PK",
@@ -310,6 +313,7 @@ func TestProcessValidReceipt1(t *testing.T) {
 func TestProcessValidReceipt2(t *testing.T) {
 
 	payload := &models.Receipt{
+		UserID:       "TestUser1",
 		Retailer:     "M&M Corner Market",
 		Total:        "9.00",
 		PurchaseDate: "2022-03-20",
@@ -354,6 +358,106 @@ func TestProcessValidReceipt2(t *testing.T) {
 	assert.NotEmpty(t, respInfo.Id)
 
 	Receipt2ID = respInfo.Id
+}
+
+func TestProcessValidReceipt3(t *testing.T) {
+
+	payload := &models.Receipt{
+		UserID:       "TestUser1",
+		Retailer:     "M&M Corner Market",
+		Total:        "9.00",
+		PurchaseDate: "2022-03-20",
+		PurchaseTime: "14:33",
+		Items: []models.Item{
+			{
+				ShortDescription: "Gatorade",
+				Price:            "2.25",
+			},
+			{
+				ShortDescription: "Gatorade",
+				Price:            "2.25",
+			},
+			{
+				ShortDescription: "Gatorade",
+				Price:            "2.25",
+			},
+			{
+				ShortDescription: "Gatorade",
+				Price:            "2.25",
+			},
+		},
+	}
+
+	resp, err := processReceipt(payload)
+	if err != nil {
+		t.Errorf("Failed to make HTTP request: %v", err)
+	}
+
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Failed to read HTTP response: %v", err)
+	}
+
+	var respInfo models.ProcessReceiptResponse
+	err = json.Unmarshal(respBytes, &respInfo)
+	if !assert.NoError(t, err) {
+		t.Errorf("Recieved unexpected response: %v", string(respBytes))
+	}
+	assert.NotEmpty(t, respInfo.Id)
+
+	Receipt3ID = respInfo.Id
+}
+
+func TestProcessValidReceipt4(t *testing.T) {
+
+	payload := &models.Receipt{
+		UserID:       "TestUser1",
+		Retailer:     "M&M Corner Market",
+		Total:        "9.00",
+		PurchaseDate: "2022-03-20",
+		PurchaseTime: "14:33",
+		Items: []models.Item{
+			{
+				ShortDescription: "Gatorade",
+				Price:            "2.25",
+			},
+			{
+				ShortDescription: "Gatorade",
+				Price:            "2.25",
+			},
+			{
+				ShortDescription: "Gatorade",
+				Price:            "2.25",
+			},
+			{
+				ShortDescription: "Gatorade",
+				Price:            "2.25",
+			},
+		},
+	}
+
+	resp, err := processReceipt(payload)
+	if err != nil {
+		t.Errorf("Failed to make HTTP request: %v", err)
+	}
+
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Failed to read HTTP response: %v", err)
+	}
+
+	var respInfo models.ProcessReceiptResponse
+	err = json.Unmarshal(respBytes, &respInfo)
+	if !assert.NoError(t, err) {
+		t.Errorf("Recieved unexpected response: %v", string(respBytes))
+	}
+	assert.NotEmpty(t, respInfo.Id)
+
+	Receipt4ID = respInfo.Id
 }
 
 func TestGetPointsOfInvalidID(t *testing.T) {
@@ -409,11 +513,53 @@ func TestGetPointsOfValidID1(t *testing.T) {
 		t.Errorf("Recieved unexpected response: %v", string(respBytes))
 	}
 
-	assert.Equal(t, int64(28), respInfo.Points)
+	assert.Equal(t, int64(1028), respInfo.Points)
 }
 
 func TestGetPointsOfValidID2(t *testing.T) {
 	resp, err := getPoints(Receipt2ID)
+	if err != nil {
+		t.Errorf("Failed to make HTTP request: %v", err)
+	}
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Failed to read HTTP response: %v", err)
+	}
+
+	var respInfo models.GetPointsResponse
+	err = json.Unmarshal(respBytes, &respInfo)
+	if !assert.NoError(t, err) {
+		t.Errorf("Recieved unexpected response: %v", string(respBytes))
+	}
+
+	assert.Equal(t, int64(609), respInfo.Points)
+}
+
+func TestGetPointsOfValidID3(t *testing.T) {
+	resp, err := getPoints(Receipt3ID)
+	if err != nil {
+		t.Errorf("Failed to make HTTP request: %v", err)
+	}
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Failed to read HTTP response: %v", err)
+	}
+
+	var respInfo models.GetPointsResponse
+	err = json.Unmarshal(respBytes, &respInfo)
+	if !assert.NoError(t, err) {
+		t.Errorf("Recieved unexpected response: %v", string(respBytes))
+	}
+
+	assert.Equal(t, int64(359), respInfo.Points)
+}
+
+func TestGetPointsOfValidID4(t *testing.T) {
+	resp, err := getPoints(Receipt4ID)
 	if err != nil {
 		t.Errorf("Failed to make HTTP request: %v", err)
 	}

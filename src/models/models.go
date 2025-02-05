@@ -50,6 +50,7 @@ func (item *Item) ValidateProperties() error {
 
 // Describes a receipt of a transaction
 type Receipt struct {
+	UserID       string `json:"userId"`
 	Retailer     string `json:"retailer"`
 	Total        string `json:"total"`
 	PurchaseDate string `json:"purchaseDate"`
@@ -97,7 +98,7 @@ func (r *Receipt) ValidateProperties() error {
 
 // Calculates the points based on the receipt details
 // Assumes properties are valid, if not then calling this will result in UB since conversion errors are unchecked
-func (r *Receipt) CalculatePoints() int64 {
+func (r *Receipt) CalculatePoints(bonusPoints int64) int64 {
 
 	totalPoints := int64(0)
 
@@ -145,12 +146,12 @@ func (r *Receipt) CalculatePoints() int64 {
 	// 2-4 PM rule
 	t, _ := time.Parse(TimeFormat, r.PurchaseTime)
 	twoPM, _ := time.Parse(TimeFormat, "14:00")
-	fourPM, _ := time.Parse(TimeFormat, "18:00")
+	fourPM, _ := time.Parse(TimeFormat, "16:00")
 	if t.After(twoPM) && t.Before(fourPM) {
 		totalPoints += 10
 	}
 
-	return totalPoints
+	return totalPoints + bonusPoints
 
 }
 

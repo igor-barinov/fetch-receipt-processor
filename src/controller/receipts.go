@@ -30,6 +30,8 @@ var idRgx = regexp.MustCompile(`^\S+$`)
 // this could probably be just a map[string]int64
 var pointsStore sync.Map
 
+var bonusMap sync.Map
+
 // Validate a request to process a receipt, then calculate and store the points for the given receipt
 func ProcessReceipt(w http.ResponseWriter, r *http.Request) {
 
@@ -61,8 +63,27 @@ func ProcessReceipt(w http.ResponseWriter, r *http.Request) {
 
 	// Calculate and store the points
 	id := uuid.New().String()
-	nPoints := receiptData.CalculatePoints()
+
+	bonusPoints := int64(0)
+	n := int64(0)
+	timesProcessed, ok := bonusMap.Load(receiptData.UserID)
+	if ok {
+		n = timesProcessed.(int64)
+	}
+
+	if n < 3 {
+		bonusPoints = 250
+	}
+	if n < 2 {
+		bonusPoints = 500
+	}
+	if n < 1 {
+		bonusPoints = 1000
+	}
+
+	nPoints := receiptData.CalculatePoints(bonusPoints)
 	pointsStore.Store(id, nPoints)
+	bonusMap.Store(receiptData.UserID, n+1)
 	resp := &models.ProcessReceiptResponse{
 		Id: id,
 	}
